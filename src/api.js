@@ -1,4 +1,7 @@
-const BASE = '/api';
+// Local: empty, the Vite proxy forwards /api to localhost:5000
+// Production (Vercel): VITE_API_URL=https://your-api.onrender.com
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const BASE = `${API_URL}/api`;
 
 // French translation of the messages returned by the backend
 const MESSAGES = {
@@ -26,7 +29,9 @@ async function request(path, options = {}) {
       ...options,
     });
   } catch {
-    throw new Error('Impossible de joindre le serveur. Vérifiez que le backend est démarré.');
+    throw new Error(
+      'Impossible de joindre le serveur. Il est peut-être en cours de démarrage, réessayez dans une minute.'
+    );
   }
 
   const data = res.status === 204 ? null : await res.json().catch(() => null);
@@ -42,4 +47,4 @@ export const api = {
   post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }),
   put: (path, body) => request(path, { method: 'PUT', body: JSON.stringify(body) }),
   del: (path) => request(path, { method: 'DELETE' }),
-};  
+};
