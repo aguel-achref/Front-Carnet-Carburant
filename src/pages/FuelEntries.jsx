@@ -6,7 +6,7 @@ const emptyForm = () => ({
   vehicle_id: '',
   entry_date: todayLocal(),
   liters: '',
-  price_per_liter: '',
+  total_cost: '',
   odometer: '',
   notes: '',
 });
@@ -53,7 +53,7 @@ export default function FuelEntries() {
       vehicle_id: String(en.vehicle_id),
       entry_date: en.entry_date,
       liters: en.liters,
-      price_per_liter: en.price_per_liter,
+      total_cost: en.total_cost,
       odometer: en.odometer ?? '',
       notes: en.notes ?? '',
     });
@@ -71,7 +71,12 @@ export default function FuelEntries() {
     }
   };
 
-  const preview = Number(form.liters) * Number(form.price_per_liter);
+  // Prix par litre calculé à partir du montant saisi
+  const pricePreview =
+    Number(form.liters) > 0 && Number(form.total_cost) > 0
+      ? Number(form.total_cost) / Number(form.liters)
+      : null;
+
   const totalCost = entries.reduce((s, e) => s + e.total_cost, 0);
   const totalLiters = entries.reduce((s, e) => s + e.liters, 0);
 
@@ -97,9 +102,9 @@ export default function FuelEntries() {
           <label>Litres
             <input name="liters" type="number" step="0.01" min="0" value={form.liters} onChange={onChange} required />
           </label>
-          <label>Prix par litre
-            <input name="price_per_liter" type="number" step="0.001" min="0"
-                   value={form.price_per_liter} onChange={onChange} required />
+          <label>Montant (TND)
+            <input name="total_cost" type="number" step="0.001" min="0"
+                   value={form.total_cost} onChange={onChange} required />
           </label>
           <label>Kilométrage (km, facultatif)
             <input name="odometer" type="number" step="1" min="0" value={form.odometer} onChange={onChange} />
@@ -110,7 +115,7 @@ export default function FuelEntries() {
         </div>
         <div className="actions">
           <span className="preview">
-            Total : <strong>{preview > 0 ? money(preview) : '—'}</strong>
+            Prix par litre : <strong>{pricePreview ? `${num(pricePreview, 3)} TND/L` : '—'}</strong>
           </span>
           <button className="btn primary" type="submit">{editingId ? 'Mettre à jour' : 'Ajouter'}</button>
           {editingId && <button className="btn" type="button" onClick={reset}>Annuler</button>}
@@ -133,8 +138,8 @@ export default function FuelEntries() {
         <table>
           <thead>
             <tr>
-              <th>Date</th><th>Véhicule</th><th>Litres</th><th>Prix/L</th>
-              <th>Total</th><th>Kilométrage</th><th>Notes</th><th></th>
+              <th>Date</th><th>Véhicule</th><th>Litres</th><th>Montant</th>
+              <th>Prix/L</th><th>Kilométrage</th><th>Notes</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -146,8 +151,8 @@ export default function FuelEntries() {
                 <td>{formatDate(en.entry_date)}</td>
                 <td>{en.vehicle_name} <small>({en.plate})</small></td>
                 <td>{num(en.liters)}</td>
-                <td>{num(en.price_per_liter, 3)}</td>
                 <td>{money(en.total_cost)}</td>
+                <td>{num(en.price_per_liter, 3)}</td>
                 <td>{en.odometer ?? '—'}</td>
                 <td>{en.notes ?? ''}</td>
                 <td className="row-actions">
